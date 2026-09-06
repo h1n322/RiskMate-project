@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RiskMate.Worker", "RiskMate
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RiskMate.Shared", "RiskMate.Shared\RiskMate.Shared.csproj", "{8B30CCD8-D0CA-48FD-88A5-A0E7FAC72D5E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RiskMate.Api.IntegrationTests", "RiskMate.Api.IntegrationTests\RiskMate.Api.IntegrationTests.csproj", "{FCD46656-7703-41AA-925F-08AD4FBFC2DB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -80,6 +82,18 @@ Global
 		{8B30CCD8-D0CA-48FD-88A5-A0E7FAC72D5E}.Release|x64.Build.0 = Release|Any CPU
 		{8B30CCD8-D0CA-48FD-88A5-A0E7FAC72D5E}.Release|x86.ActiveCfg = Release|Any CPU
 		{8B30CCD8-D0CA-48FD-88A5-A0E7FAC72D5E}.Release|x86.Build.0 = Release|Any CPU
+		{FCD46656-7703-41AA-925F-08AD4FBFC2DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCD46656-7703-41AA-925F-08AD4FBFC2DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCD46656-7703-41AA-925F-08AD4FBFC2DB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FCD46656-7703-41AA-925F-08AD4FBFC2DB}.Debug|x64.Build.0 = Debug|Any CPU
+		{FCD46656-7703-41AA-925F-08AD4FBFC2DB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FCD46656-7703-41AA-925F-08AD4FBFC2DB}.Debug|x86.Build.0 = Debug|Any CPU
+		{FCD46656-7703-41AA-925F-08AD4FBFC2DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCD46656-7703-41AA-925F-08AD4FBFC2DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCD46656-7703-41AA-925F-08AD4FBFC2DB}.Release|x64.ActiveCfg = Release|Any CPU
+		{FCD46656-7703-41AA-925F-08AD4FBFC2DB}.Release|x64.Build.0 = Release|Any CPU
+		{FCD46656-7703-41AA-925F-08AD4FBFC2DB}.Release|x86.ActiveCfg = Release|Any CPU
+		{FCD46656-7703-41AA-925F-08AD4FBFC2DB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

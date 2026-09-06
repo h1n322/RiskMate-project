@@ -9,6 +9,11 @@ namespace RiskMate.Shared.Extensions
 {
     public static class ServiceCollectionExtensions
     {
+        public static IServiceCollection AddRiskMateSettings(this IServiceCollection services, Microsoft.Extensions.Configuration.IConfiguration configuration)
+        {
+            services.Configure<RiskMate.Shared.Settings.RiskMateSettings>(configuration.GetSection("RiskMateSettings"));
+            return services;
+        }
         public static IServiceCollection AddRiskMateServices(this IServiceCollection services)
         {
             services.AddHttpClient<YahooFinanceService>()

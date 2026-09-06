@@ -6,6 +6,6 @@ namespace RiskMate.Shared.Interfaces
 {
     public interface ISimulationJob
     {
-        Task ExecuteAsync(SimulationRequestDto dto, PerformContext context = null);
+        Task ExecuteAsync(SimulationRequestDto dto, string userId, PerformContext context = null);
     }
 }

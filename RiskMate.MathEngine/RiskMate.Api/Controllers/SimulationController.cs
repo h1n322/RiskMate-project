@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Hangfire;
@@ -56,7 +57,8 @@ namespace RiskMate.Api.Controllers
             }
 
             // Ставимо задачу в чергу
-            var jobId = _backgroundJobs.Enqueue<ISimulationJob>(job => job.ExecuteAsync(dto, null));
+            var firebaseUid = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "anonymous";
+            var jobId = _backgroundJobs.Enqueue<ISimulationJob>(job => job.ExecuteAsync(dto, firebaseUid, null));
             _logger.LogInformation("Simulation request enqueued with JobId: {JobId}", jobId);
 
             // Повертаємо 202 Accepted замість чекання
@@ -70,7 +72,8 @@ namespace RiskMate.Api.Controllers
         [HttpGet("status/{jobId}")]
         public async Task<IActionResult> GetJobStatus(string jobId)
         {
-            var cachedJson = await _cache.GetStringAsync($"sim_job_{jobId}");
+            var firebaseUid = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "anonymous";
+            var cachedJson = await _cache.GetStringAsync($"sim_job_{firebaseUid}_{jobId}");
             if (string.IsNullOrEmpty(cachedJson))
             {
                 return NotFound(new { Message = "Симуляція не знайдена, ще не почалась, або результат застарів." });

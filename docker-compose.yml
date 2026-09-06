@@ -27,12 +27,27 @@ services:
     ports:
       - "5266:8080"
     environment:
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=riskmate_db;Username=postgres;Password=${DB_PASSWORD}
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=riskmate_db;Username=postgres;Password=supersecretpassword
+      - ConnectionStrings__Redis=redis:6379
       - ASPNETCORE_ENVIRONMENT=Development
-      - GeminiApiKey=${GEMINI_API_KEY}
-      - PYTHON_API_URL=http://python-ml:8000
+      - RiskMateSettings__GeminiApiKey=${GEMINI_API_KEY}
+      - RiskMateSettings__PythonApiUrl=http://python-ml:8000
     depends_on:
       - db
+      - redis
+
+  csharp-worker:
+    build:
+      context: ./RiskMate.MathEngine
+      dockerfile: RiskMate.Worker/Dockerfile
+    container_name: riskmate_csharp_worker
+    environment:
+      - ConnectionStrings__Redis=redis:6379
+      - RiskMateSettings__GeminiApiKey=${GEMINI_API_KEY}
+      - RiskMateSettings__PythonApiUrl=http://python-ml:8000
+    depends_on:
+      - redis
+      - python-ml
 
   python-ml:
     build:
@@ -44,8 +59,6 @@ services:
     volumes:
       - ./riskmate-ai-service:/app
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-    depends_on:
-      - redis
 
   frontend:
     build:
@@ -62,7 +75,6 @@ services:
       - /app/node_modules
     command: npm run dev -- --host
     depends_on:
-      - python-ml
       - csharp-api
 
 volumes:
