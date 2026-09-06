@@ -35,7 +35,7 @@ namespace RiskMate.Worker.Jobs
             _logger = logger;
         }
 
-        public async Task ExecuteAsync(SimulationRequestDto dto, PerformContext context = null)
+        public async Task ExecuteAsync(SimulationRequestDto dto, string userId, PerformContext context = null)
         {
             var jobId = context?.BackgroundJob.Id;
             _logger.LogInformation("Початок виконання симуляції. JobId: {JobId}, Ticker: {Ticker}", jobId, dto.Ticker);
@@ -43,13 +43,13 @@ namespace RiskMate.Worker.Jobs
             try
             {
                 // Позначаємо статус як "В процесі"
-                await SetJobStatusAsync(jobId, new { Status = "Processing", Progress = 10 });
+                await SetJobStatusAsync(jobId, userId, new { Status = "Processing", Progress = 10 });
 
                 bool isBacktest = dto.Algorithm?.ToLowerInvariant() == "backtest" || dto.IsBacktest;
                 var algorithm = ParseAlgorithm(dto.Algorithm) ?? SimulationAlgorithm.Gbm;
                 var scenario = ParseScenario(dto.Scenario);
 
-                await SetJobStatusAsync(jobId, new { Status = "Processing", Progress = 20, Message = "Fetching historical data" });
+                await SetJobStatusAsync(jobId, userId, new { Status = "Processing", Progress = 20, Message = "Fetching historical data" });
                 var historyResponse = await _yahooFinanceService.GetHistoricalDataAsync(dto.Ticker, dto.LookbackYears);
 
                 if (historyResponse?.data == null || historyResponse.data.Count < 10)
@@ -63,7 +63,7 @@ namespace RiskMate.Worker.Jobs
                     Price = h.Close
                 }).ToList();
 
-                await SetJobStatusAsync(jobId, new { Status = "Processing", Progress = 50, Message = "Running mathematical simulation" });
+                await SetJobStatusAsync(jobId, userId, new { Status = "Processing", Progress = 50, Message = "Running mathematical simulation" });
                 var simulationResult = _riskEngine.RunSimulation(
                     priceDataPoints,
                     algorithm,
@@ -76,7 +76,7 @@ namespace RiskMate.Worker.Jobs
                     dto.RiskFreeRate
                 );
 
-                await SetJobStatusAsync(jobId, new { Status = "Processing", Progress = 80, Message = "Fetching AI analytics and news" });
+                await SetJobStatusAsync(jobId, userId, new { Status = "Processing", Progress = 80, Message = "Fetching AI analytics and news" });
                 var news = await _yahooFinanceService.GetAssetNewsAsync(dto.Ticker);
                 var aiSummary = await _aiAnalyticsService.GenerateRiskSummaryAsync(dto.Ticker, simulationResult, news);
 
@@ -111,18 +111,18 @@ namespace RiskMate.Worker.Jobs
                     }
                 };
 
-                await SetJobStatusAsync(jobId, finalResult);
+                await SetJobStatusAsync(jobId, userId, finalResult);
                 _logger.LogInformation("Симуляція успішно завершена. JobId: {JobId}", jobId);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Помилка виконання симуляції. JobId: {JobId}", jobId);
-                await SetJobStatusAsync(jobId, new { Status = "Error", Message = ex.Message });
+                await SetJobStatusAsync(jobId, userId, new { Status = "Error", Message = ex.Message });
                 throw; // Щоб Hangfire міг зробити retry
             }
         }
 
-        private async Task SetJobStatusAsync(string jobId, object statusObj)
+        private async Task SetJobStatusAsync(string jobId, string userId, object statusObj)
         {
             if (string.IsNullOrEmpty(jobId)) return;
             
@@ -132,7 +132,7 @@ namespace RiskMate.Worker.Jobs
             };
             
             var json = JsonSerializer.Serialize(statusObj);
-            await _cache.SetStringAsync($"sim_job_{jobId}", json, options);
+            await _cache.SetStringAsync($"sim_job_{userId}_{jobId}", json, options);
         }
 
         private static SimulationAlgorithm? ParseAlgorithm(string algorithm)

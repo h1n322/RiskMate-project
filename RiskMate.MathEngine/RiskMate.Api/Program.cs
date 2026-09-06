@@ -10,6 +10,8 @@ using RiskMate.Api.Models;
 using RiskMate.Api.Services;
 using RiskMate.MathEngine;
 using RiskMate.MathEngine.Simulators;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 using Hangfire;
 using Hangfire.Redis.StackExchange;
 using StackExchange.Redis;
@@ -65,6 +67,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddMemoryCache();
 builder.Services.AddControllers();
+builder.Services.AddRiskMateSettings(builder.Configuration);
 builder.Services.AddRiskMateServices();
 builder.Services.AddSingleton<RiskEngine>();
 builder.Services.AddSingleton<BacktestSimulator>();
@@ -84,6 +87,22 @@ builder.Services.AddHangfire(config => config
     {
         Prefix = "hangfire:"
     }));
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = 429;
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+    {
+        var userId = httpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        var partitionKey = userId ?? httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(partitionKey, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10,
+            Window = TimeSpan.FromMinutes(1),
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = 2
+        });
+    });
+});
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -96,6 +115,7 @@ using (var scope = app.Services.CreateScope())
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseCors("AllowReactApp");
+app.UseRateLimiter();
 
 if (app.Environment.IsDevelopment())
 {

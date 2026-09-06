@@ -1,8 +1,14 @@
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using System.Text;
 using System.Text.Json;
 using RiskMate.MathEngine.Models;
 using RiskMate.Api.DTOs;
+using RiskMate.Shared.Settings;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System;
 
 namespace RiskMate.Api.Services
 {
@@ -11,10 +17,10 @@ namespace RiskMate.Api.Services
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
 
-        public AiAnalyticsService(HttpClient httpClient, IConfiguration config)
+        public AiAnalyticsService(HttpClient httpClient, IOptions<RiskMateSettings> settings)
         {
             _httpClient = httpClient;
-            _apiKey = config["GeminiApiKey"] ?? "";
+            _apiKey = settings.Value.GeminiApiKey ?? "";
         }
 
         public async Task<string> GenerateRiskSummaryAsync(string ticker, SimulationResult result, List<NewsItemDto> news)
@@ -81,7 +87,6 @@ namespace RiskMate.Api.Services
                     var errorBody = await response.Content.ReadAsStringAsync();
                     errors.Add($"[{modelName}: {response.StatusCode} {errorBody}]");
                     
-                    // Якщо це не 404 або 503, припиняємо спроби (наприклад, невірний ключ - 400)
                     if (response.StatusCode != System.Net.HttpStatusCode.NotFound && response.StatusCode != System.Net.HttpStatusCode.ServiceUnavailable)
                     {
                         break;
@@ -93,7 +98,6 @@ namespace RiskMate.Api.Services
                 }
             }
             
-            // Якщо всі моделі видали помилки, перевіряємо, чи є серед них помилка перевантаження (503)
             if (errors.Any(e => e.Contains("503") || e.Contains("ServiceUnavailable")))
             {
                 return "Генерація AI-аналітики тимчасово недоступна через високе навантаження на сервери Gemini. Будь ласка, спробуйте пізніше.";
