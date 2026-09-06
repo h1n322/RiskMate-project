@@ -5,7 +5,7 @@ using RiskMate.MathEngine.Generators;
 
 namespace RiskMate.MathEngine.Simulators
 {
-    public class MonteCarloSimulator
+    public class MonteCarloSimulator : RiskMate.MathEngine.Simulators.Interfaces.IMonteCarloSimulator
     {
         public double[][] Simulate(AssetParameters parameters, int simulationsCount, int horizon, IRandomProvider rng)
         {

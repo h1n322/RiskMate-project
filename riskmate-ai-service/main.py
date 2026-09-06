@@ -6,8 +6,6 @@ from firebase_admin import credentials
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes_simulations import router as simulations_router
-from api.routes_portfolio import router as portfolio_router
 from api.routes_market import router as market_router
 from api.routes_billing import router as billing_router
 
@@ -34,8 +32,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(simulations_router)
-app.include_router(portfolio_router)
 app.include_router(market_router)
 app.include_router(billing_router)
 from api.routes_ml import router as ml_router

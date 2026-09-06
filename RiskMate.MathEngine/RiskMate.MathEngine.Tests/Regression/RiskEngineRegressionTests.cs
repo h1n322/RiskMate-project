@@ -23,7 +23,7 @@ namespace RiskMate.MathEngine.Tests.Regression
         [Fact]
         public void Gbm_Simulation_ShouldMatchBaseline()
         {
-            var engine = new RiskEngine();
+            var engine = new RiskEngine(new RiskMate.MathEngine.Simulators.MonteCarloSimulator(), new RiskMate.MathEngine.Simulators.HistoricalSimulator(), new RiskMate.MathEngine.Simulators.StressTestSimulator(), new RiskMate.MathEngine.Simulators.MertonJumpSimulator(), new RiskMate.MathEngine.Simulators.GarchSimulator(), null);
             var prices = GetMockHistoricalPrices();
             var result = engine.RunSimulation(prices, SimulationAlgorithm.Gbm, 1000, 10);
 
@@ -37,7 +37,7 @@ namespace RiskMate.MathEngine.Tests.Regression
         [Fact]
         public void Garch_Simulation_ShouldMatchBaseline()
         {
-            var engine = new RiskEngine();
+            var engine = new RiskEngine(new RiskMate.MathEngine.Simulators.MonteCarloSimulator(), new RiskMate.MathEngine.Simulators.HistoricalSimulator(), new RiskMate.MathEngine.Simulators.StressTestSimulator(), new RiskMate.MathEngine.Simulators.MertonJumpSimulator(), new RiskMate.MathEngine.Simulators.GarchSimulator(), null);
             var prices = GetMockHistoricalPrices();
             var result = engine.RunSimulation(prices, SimulationAlgorithm.Garch, 1000, 10);
 
@@ -49,7 +49,7 @@ namespace RiskMate.MathEngine.Tests.Regression
         [Fact]
         public void Merton_Simulation_ShouldMatchBaseline()
         {
-            var engine = new RiskEngine();
+            var engine = new RiskEngine(new RiskMate.MathEngine.Simulators.MonteCarloSimulator(), new RiskMate.MathEngine.Simulators.HistoricalSimulator(), new RiskMate.MathEngine.Simulators.StressTestSimulator(), new RiskMate.MathEngine.Simulators.MertonJumpSimulator(), new RiskMate.MathEngine.Simulators.GarchSimulator(), null);
             var prices = GetMockHistoricalPrices();
             var result = engine.RunSimulation(prices, SimulationAlgorithm.Merton, 1000, 10);
 
@@ -61,7 +61,7 @@ namespace RiskMate.MathEngine.Tests.Regression
         [Fact]
         public void Historical_Simulation_ShouldMaintainInvariants()
         {
-            var engine = new RiskEngine();
+            var engine = new RiskEngine(new RiskMate.MathEngine.Simulators.MonteCarloSimulator(), new RiskMate.MathEngine.Simulators.HistoricalSimulator(), new RiskMate.MathEngine.Simulators.StressTestSimulator(), new RiskMate.MathEngine.Simulators.MertonJumpSimulator(), new RiskMate.MathEngine.Simulators.GarchSimulator(), null);
             var prices = GetMockHistoricalPrices();
             
             var result = engine.RunSimulation(prices, SimulationAlgorithm.Historical, 1000, 10);

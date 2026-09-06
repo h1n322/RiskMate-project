@@ -1,3 +1,4 @@
+using RiskMate.Shared.Extensions;
 using RiskMate.Api.Middlewares;
 using Serilog;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,9 @@ using RiskMate.Api.Models;
 using RiskMate.Api.Services;
 using RiskMate.MathEngine;
 using RiskMate.MathEngine.Simulators;
+using Hangfire;
+using Hangfire.Redis.StackExchange;
+using StackExchange.Redis;
 
 
 Log.Logger = new LoggerConfiguration()
@@ -61,11 +65,25 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddMemoryCache();
 builder.Services.AddControllers();
-builder.Services.AddHttpClient<YahooFinanceService>();
-builder.Services.AddHttpClient<AiAnalyticsService>();
+builder.Services.AddRiskMateServices();
 builder.Services.AddSingleton<RiskEngine>();
 builder.Services.AddSingleton<BacktestSimulator>();
 builder.Services.AddSingleton<PdfReportService>();
+var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
+var redis = ConnectionMultiplexer.Connect(redisConnectionString);
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = redisConnectionString;
+    options.InstanceName = "RiskMate_";
+});
+builder.Services.AddHangfire(config => config
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseRedisStorage(redis, new RedisStorageOptions
+    {
+        Prefix = "hangfire:"
+    }));
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -84,6 +102,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseHangfireDashboard("/hangfire");
 app.UseAuthentication();      
 app.UseAuthorization();       
 app.MapControllers();

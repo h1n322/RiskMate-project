@@ -5,7 +5,7 @@ using RiskMate.MathEngine.Generators;
 
 namespace RiskMate.MathEngine.Simulators
 {
-    public class StressTestSimulator
+    public class StressTestSimulator : RiskMate.MathEngine.Simulators.Interfaces.IStressTestSimulator
     {
         public double[][] Simulate(
             AssetParameters parameters, 

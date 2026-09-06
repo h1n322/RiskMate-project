@@ -18,8 +18,6 @@ from fastapi import Depends
 from firebase_admin import firestore
 
 from infrastructure.data_provider import YFinanceProvider
-from services.simulation_service import SimulationService
-from services.portfolio_service import PortfolioService
 from services.user_service import UserService
 from services.predict_service import PredictService
 
@@ -41,16 +39,6 @@ def get_data_provider() -> YFinanceProvider:
 # Сервіси — створюються на кожен запит (FastAPI default scope)
 # -----------------------------------------------------------------------
 
-def get_simulation_service(
-    provider: YFinanceProvider = Depends(get_data_provider),
-) -> SimulationService:
-    return SimulationService(provider=provider)
-
-
-def get_portfolio_service(
-    provider: YFinanceProvider = Depends(get_data_provider),
-) -> PortfolioService:
-    return PortfolioService(provider=provider)
 
 
 def get_predict_service(
