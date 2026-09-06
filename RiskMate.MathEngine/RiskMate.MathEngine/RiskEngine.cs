@@ -1,3 +1,4 @@
+using RiskMate.MathEngine.Simulators.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -11,26 +12,26 @@ namespace RiskMate.MathEngine
 {
     public class RiskEngine
     {
-        private readonly MonteCarloSimulator _monteCarlo;
-        private readonly HistoricalSimulator _historical;
-        private readonly StressTestSimulator _stressTest;
-        private readonly MertonJumpSimulator _merton;
-        private readonly GarchSimulator _garch;
+        private readonly IMonteCarloSimulator _monteCarlo;
+        private readonly IHistoricalSimulator _historical;
+        private readonly IStressTestSimulator _stressTest;
+        private readonly IMertonJumpSimulator _merton;
+        private readonly IGarchSimulator _garch;
         private readonly ILogger<RiskEngine> _logger;
 
         public RiskEngine(
-            MonteCarloSimulator monteCarlo = null,
-            HistoricalSimulator historical = null,
-            StressTestSimulator stressTest = null,
-            MertonJumpSimulator merton = null,
-            GarchSimulator garch = null,
-            ILogger<RiskEngine> logger = null)
+            IMonteCarloSimulator monteCarlo,
+            IHistoricalSimulator historical,
+            IStressTestSimulator stressTest,
+            IMertonJumpSimulator merton,
+            IGarchSimulator garch,
+            ILogger<RiskEngine> logger)
         {
-            _monteCarlo = monteCarlo ?? new MonteCarloSimulator();
-            _historical = historical ?? new HistoricalSimulator();
-            _stressTest = stressTest ?? new StressTestSimulator();
-            _merton = merton ?? new MertonJumpSimulator();
-            _garch = garch ?? new GarchSimulator();
+            _monteCarlo = monteCarlo;
+            _historical = historical;
+            _stressTest = stressTest;
+            _merton = merton;
+            _garch = garch;
             _logger = logger;
         }
 

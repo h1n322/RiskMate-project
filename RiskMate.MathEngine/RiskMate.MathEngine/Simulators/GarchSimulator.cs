@@ -5,7 +5,7 @@ using RiskMate.MathEngine.Generators;
 
 namespace RiskMate.MathEngine.Simulators
 {
-    public class GarchSimulator
+    public class GarchSimulator : RiskMate.MathEngine.Simulators.Interfaces.IGarchSimulator
     {
         public double[][] Simulate(
             AssetParameters parameters, 

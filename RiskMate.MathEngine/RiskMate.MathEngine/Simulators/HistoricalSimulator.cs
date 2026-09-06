@@ -6,7 +6,7 @@ using RiskMate.MathEngine.Generators;
 
 namespace RiskMate.MathEngine.Simulators
 {
-    public class HistoricalSimulator
+    public class HistoricalSimulator : RiskMate.MathEngine.Simulators.Interfaces.IHistoricalSimulator
     {
         public double[][] Simulate(double initialPrice, List<double> historicalReturns, int simulationsCount, int horizon, IRandomProvider rng)
         {
