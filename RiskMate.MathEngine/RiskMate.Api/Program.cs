@@ -16,21 +16,17 @@ using Hangfire;
 using Hangfire.Redis.StackExchange;
 using StackExchange.Redis;
 
-
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateBootstrapLogger();
 
-try
-{
-    Log.Information("Starting up RiskMate API...");
-    var builder = WebApplication.CreateBuilder(args);
-    builder.Host.UseSerilog((context, services, configuration) => configuration
-        .ReadFrom.Configuration(context.Configuration)
-        .ReadFrom.Services(services)
-        .Enrich.FromLogContext()
-        .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}"));
-
+Log.Information("Starting up RiskMate API...");
+var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext()
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}"));
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -72,21 +68,29 @@ builder.Services.AddRiskMateServices();
 builder.Services.AddSingleton<RiskEngine>();
 builder.Services.AddSingleton<BacktestSimulator>();
 builder.Services.AddSingleton<PdfReportService>();
-var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
-var redis = ConnectionMultiplexer.Connect(redisConnectionString);
+
+// Get connection string but don't connect to Redis immediately on startup during test!
+ 
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp => {
+    var config = sp.GetRequiredService<IConfiguration>();
+    var connStr = config.GetConnectionString("Redis") ?? "localhost:6379";
+    return ConnectionMultiplexer.Connect(connStr);
+});
+
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-    options.Configuration = redisConnectionString;
+    options.Configuration = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
     options.InstanceName = "RiskMate_";
 });
-builder.Services.AddHangfire(config => config
+builder.Services.AddHangfire((sp, config) => config
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
     .UseSimpleAssemblyNameTypeSerializer()
     .UseRecommendedSerializerSettings()
-    .UseRedisStorage(redis, new RedisStorageOptions
+    .UseRedisStorage(sp.GetRequiredService<IConnectionMultiplexer>(), new RedisStorageOptions
     {
         Prefix = "hangfire:"
     }));
+
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = 429;
@@ -110,7 +114,6 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
 }
-
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
@@ -158,16 +161,6 @@ app.MapPost("/api/auth/sync", async (AppDbContext db, HttpContext httpContext) =
     return Results.Ok(new { Message = "Користувач вже існує", User = user });
 }).RequireAuthorization();
 
+app.Run();
 
-    app.Run();
-}
-catch (Exception ex)
-{
-    Log.Fatal(ex, "Unhandled exception during application startup.");
-}
-finally
-{
-    Log.Information("Shut down complete.");
-    Log.CloseAndFlush();
-}
 public partial class Program { }
